@@ -322,7 +322,7 @@
         <!-- Pantalla Inicio -->
         <div id="start-screen" class="overlay-screen">
             <h1>Neon Party<br><small style="font-size: 30px;">Fiesta en SIL</small></h1>
-            <p>Ayuda a Damaris a esquivar el alcohol y tomar agua.</p>
+            <p>Ayuda a Cueviña a esquivar el alcohol y tomar agua.</p>
             <div id="controls">← Mover Izquierda | Mover Derecha →</div>
             <button onclick="startGame()">¡A BAILAR!</button>
         </div>
@@ -391,7 +391,8 @@
             botellaWisky: loadImage('images/botella wisky.png'),
             gotaAgua: loadImage('images/gota agua.png'),
             limon: loadImage('images/limon.png'),
-            botellaAgua: loadImage('images/botella agua.png')
+            botellaAgua: loadImage('images/botella agua.png'),
+            piruja: loadImage('images/piruja.jpg')
         };
 
         function loadImage(src) {
@@ -704,6 +705,7 @@
                 spawnEntity(difficultyFactor);
                 spawnBarrier(difficultyFactor); // Try to spawn barrier
                 spawnBlade(difficultyFactor);   // Try to spawn SPINNING BLADE
+                spawnPiruja(difficultyFactor);  // Try to spawn PIRUJA
             }
 
             // 4. Entidades
@@ -950,6 +952,25 @@
             });
         }
 
+        // --- PIRUJA (DANGEROUS ENEMY) ---
+        function spawnPiruja(difficulty) {
+            // Very low chance, falls "de rato en rato"
+            if (Math.random() > 0.005 + (difficulty * 0.002)) return;
+
+            const x = Math.random() * (GAME.width - 60) + 30;
+
+            entities.push({
+                x: x,
+                y: -60,
+                sprite: SPRITES.piruja,
+                isPiruja: true,
+                speed: 200 + (difficulty * 50),
+                rotation: 0,
+                rotSpeed: (Math.random() - 0.5) * 2,
+                type: { color: '#00ff00', name: 'Piruja' }
+            });
+        }
+
         function applyEffect(e) {
             spawnExplosion(e.x, e.y, e.type.color, e.isGiant);
 
@@ -979,13 +1000,28 @@
             GAME.life = Math.min(100, Math.max(0, GAME.life));
             GAME.drunk = Math.min(100, Math.max(0, GAME.drunk));
 
+            if (e.isPiruja) {
+                gameOver('PEPEADO');
+                return;
+            }
+
             if (GAME.life <= 0) gameOver();
         }
 
-        function gameOver() {
+        function gameOver(customMsg) {
             gameRunning = false;
             let finalLvlName = LEVEL_NAMES[Math.min(GAME.level, LEVEL_NAMES.length - 1)];
             ui.gameOverScreen.style.display = 'flex';
+
+            const gameOverTitle = ui.gameOverScreen.querySelector('h1');
+            if (customMsg) {
+                gameOverTitle.innerText = customMsg;
+                gameOverTitle.style.color = '#00ff00'; // Green for Piruja hit
+            } else {
+                gameOverTitle.innerText = 'CIMA ETÍLICA';
+                gameOverTitle.style.color = '#ff3e3e';
+            }
+
             ui.finalScore.innerText = `DERRIBADOS: ${GAME.score}\nLUGAR: ${finalLvlName}`;
         }
 
@@ -1103,7 +1139,7 @@
             ctx.font = "bold 14px Arial";
             ctx.fillStyle = "#ff00cc";
             ctx.textAlign = "center";
-            ctx.fillText("DAMARIS", 0, -50);
+            ctx.fillText("CUEVIÑA", 0, -50);
 
             ctx.rotate(wobble * Math.PI / 180);
             ctx.shadowColor = '#ff00cc';
